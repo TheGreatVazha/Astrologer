@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ദിനഫലം (Daily Prediction)</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Great+Vibes&family=Manjari:wght@400;700&family=Noto+Sans+Malayalam:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --kerala-cream: #fdf6e3;
+            --kerala-gold: #d4af37;
+            --kerala-red: #8a1c1c;
+            --night-bg: #05070a;
+            --border-color: #8a1c1c;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            overflow: hidden; /* App-like feel */
+            width: 100vw;
+            height: 100vh;
+            font-family: 'Manjari', sans-serif;
+            background-color: var(--kerala-cream);
+        }
+
+        /* HELPER CLASSES */
+        .hidden { display: none !important; }
+        .fade-in { animation: fadeIn 1s forwards; }
+        .fade-out { animation: fadeOut 1s forwards; }
+
+        /* ========================
+           PAGE 1: DATA COLLECTION
+           ======================== */
+        #page-input {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            /* Mandala-ish subtle pattern */
+            background-image: 
+                radial-gradient(circle at 50% 50%, transparent 0%, transparent 30%, rgba(138, 28, 28, 0.03) 30%, rgba(138, 28, 28, 0.03) 40%, transparent 40%),
+                radial-gradient(#e6dcb8 1px, transparent 1px);
+            background-size: 100% 100%, 20px 20px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        /* Traditional Frame Container */
+        .traditional-frame {
+            position: relative;
+            background: rgba(255, 255, 255, 0.96);
+            border: 2px solid var(--kerala-red);
+            padding: 2px; /* Gap for double border */
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            border-radius: 4px;
+        }
+
+        .inner-frame {
+            border: 2px solid var(--kerala-gold);
+            padding: 25px 20px;
+            position: relative;
+        }
+
+        /* Corner Ornaments using pseudo-elements */
+        .inner-frame::before, .inner-frame::after {
+            content: "✥";
+            position: absolute;
+            color: var(--kerala-red);
+            font-size: 1.5rem;
+            line-height: 1;
+        }
+        .inner-frame::before { top: 5px; left: 5px; }
+        .inner-frame::after { bottom: 5px; right: 5px; }
+
+        .astro-header {
+            color: var(--kerala-red);
+            font-size: 1.6rem;
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+
+        .sub-header {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            font-style: italic;
+            border-bottom: 1px solid var(--kerala-gold);
+            padding-bottom: 10px;
+            display: inline-block;
+        }
+
+        .disclaimer-text {
+            font-size: 0.85rem;
+            color: #444;
+            margin-bottom: 20px;
+            line-height: 1.4;
+            background: #fff8e1;
+            padding: 8px;
+            border-radius: 4px;
+            border-left: 3px solid var(--kerala-gold);
+            text-align: left;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d4af37;
+            border-radius: 4px;
+            font-family: 'Noto Sans Malayalam', sans-serif;
+            font-size: 1rem;
+            background: #fffdf5;
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--kerala-red);
+            box-shadow: 0 0 5px rgba(138, 28, 28, 0.2);
+        }
+
+        .tech-specs {
+            background: #f4f4f4;
+            padding: 10px;
+            margin: 15px 0;
+            font-size: 0.75rem;
+            color: #555;
+            text-align: left;
+            border-radius: 4px;
+            border: 1px dashed #ccc;
+        }
+
+        .tech-item {
+            display: flex;
+            align-items: center;
+            margin: 4px 0;
+        }
+
+        .tech-item span.dot {
+            height: 6px;
+            width: 6px;
+            background-color: #28a745;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+            animation: pulseGreen 1.5s infinite;
+        }
+
+        .main-btn {
+            background: linear-gradient(135deg, var(--kerala-red), #600f0f);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            box-shadow: 0 4px 10px rgba(138, 28, 28, 0.3);
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        .main-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* ========================
+           PAGE 2: LOADING / ANALYSIS
+           ======================== */
+        #page-analysis {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--kerala-cream);
+            padding: 20px;
+        }
+
+        .analysis-container {
+            border: 2px solid var(--kerala-gold);
+            padding: 30px;
+            background: white;
+            border-radius: 50%; /* Circle container */
+            width: 280px;
+            height: 280px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 0 20px rgba(197, 160, 89, 0.3);
+        }
+
+        .analysis-container::after {
+            content: "";
+            position: absolute;
+            top: -5px; left: -5px; right: -5px; bottom: -5px;
+            border: 1px dashed var(--kerala-red);
+            border-radius: 50%;
+            animation: spin 8s linear infinite;
+        }
+
+        .loader-text {
+            font-size: 1.1rem;
+            color: var(--kerala-red);
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--kerala-red);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .console-log {
+            margin-top: 10px;
+            font-family: monospace;
+            color: #666;
+            font-size: 0.75rem;
+            height: 40px;
+            text-align: center;
+            width: 80%;
+        }
+
+        /* ========================
+           PAGE 3: THE TWIST
+           ======================== */
+        #page-result {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .result-big {
+            font-size: 1.8rem;
+            color: var(--kerala-red);
+            font-weight: bold;
+            margin-bottom: 20px;
+            opacity: 0;
+        }
+
+        /* ========================
+           PAGE 4: BIRTHDAY FINAL
+           ======================== */
+        #page-birthday {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.8;
+            animation: twinkle var(--duration) infinite ease-in-out;
+        }
+
+        .wish-container {
+            z-index: 20;
+            text-align: center;
+            transform: translateY(-80px); /* Move text higher for mobile */
+            width: 100%;
+            padding: 0 10px;
+        }
+
+        .golden-text {
+            font-family: 'Great Vibes', cursive;
+            font-size: 3.5rem; 
+            background: linear-gradient(to bottom, #cfc09f 22%, #634f2c 24%, #cfc09f 26%, #cfc09f 27%, #ffecb3 40%, #3a2c0f 78%); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            color: #fff; 
+            filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.5));
+            opacity: 0;
+            display: block;
+            margin: 5px 0;
+            line-height: 1.2;
+        }
+
+        .sub-text {
+            font-family: 'Cinzel', serif;
+            font-size: 2rem;
+            background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            opacity: 0;
+            text-transform: uppercase;
+        }
+
+        /* PEEKING IMAGES */
+        .peeking-img {
+            position: fixed;
+            z-index: 10;
+            width: auto;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+            filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.6));
+            animation: auraPulse 3s infinite alternate;
+        }
+
+        /* Animations */
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes pulseGreen { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+        @keyframes auraPulse {
+            0% { filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.4)); }
+            100% { filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.9)); }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* ========================
+           MOBILE RESPONSIVE TWEAKS
+           ======================== */
+        @media (max-width: 768px) {
+            /* Text adjustments */
+            .astro-header { font-size: 1.4rem; }
+            .disclaimer-text { font-size: 0.8rem; }
+            .golden-text { font-size: 3.2rem; }
+            .sub-text { font-size: 1.8rem; }
+
+            /* Image positioning for Phone Portrait */
+            .peeking-img {
+                max-height: 25vh; /* Keep them smaller on phone */
+            }
+            
+            /* Bottom Left */
+            .img-1 { bottom: 0; left: -10px; transform: rotate(5deg); z-index: 12; }
+            /* Bottom Right */
+            .img-2 { bottom: 0; right: -10px; transform: rotate(-5deg); z-index: 12; }
+            /* Middle Left (slightly higher) */
+            .img-3 { bottom: 15%; left: -20px; max-height: 20vh; z-index: 5; }
+            /* Middle Right (slightly higher) */
+            .img-4 { bottom: 15%; right: -20px; max-height: 20vh; z-index: 5; }
+
+            .wish-container { transform: translateY(-100px); }
+        }
+        
+        /* Larger screens */
+        @media (min-width: 769px) {
+            .img-1 { bottom: -10px; left: -20px; transform: rotate(5deg); max-height: 45vh; }
+            .img-2 { bottom: -10px; right: -20px; transform: rotate(-5deg); max-height: 45vh; }
+            .img-3 { bottom: 0; left: 20%; z-index: 5; max-height: 35vh; } 
+            .img-4 { bottom: 0; right: 20%; z-index: 5; max-height: 35vh; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- PAGE 1: INPUT -->
+    <div id="page-input">
+        <div class="traditional-frame">
+            <div class="inner-frame">
+                <h2 class="astro-header">ദിനഫല പരിശോധന</h2>
+                <span class="sub-header">Daily Status Check</span>
+                
+                <div class="disclaimer-text">
+                    ഇത് മുഴുവൻ ജാതകം അല്ല. ഇന്നത്തെ ദിവസത്തിന്റെ പ്രത്യേകതകളും ഗ്രഹനിലയും ആധുനിക സയൻസ് ഉപയോഗിച്ച് പരിശോധിക്കുന്നു.<br>
+                    (Uses State-of-the-Art Science & Vedic Data)
+                </div>
+
+                <div class="input-group">
+                    <label>നിങ്ങളുടെ പേര് (Name):</label>
+                    <input type="text" id="userName" placeholder="പേര് ഇവിടെ നൽകുക">
+                </div>
+
+                <div class="input-group">
+                    <label>ജന്മനക്ഷത്രം (Star):</label>
+                    <select id="userStar">
+                        <option value="" disabled selected>നക്ഷത്രം തിരഞ്ഞെടുക്കൂ</option>
+                        <option>തിരുവോണം (Thiruvonam)</option>
+                        <option>അശ്വതി (Ashwathi)</option>
+                        <option>ഭരണി (Bharani)</option>
+                        <option>കാർത്തിക (Karthika)</option>
+                        <option>രോഹിണി (Rohini)</option>
+                        <option>മകയിരം (Makayiram)</option>
+                        <option>പുണർതം (Punartham)</option>
+                        <option>പൂയം (Pooyam)</option>
+                        <option>ആയില്യം (Ayilyam)</option>
+                        <option>മകം (Makam)</option>
+                        <option>മറ്റുള്ളവ (Others)</option>
+                    </select>
+                </div>
+
+                <div class="tech-specs">
+                    <div class="tech-item"><span class="dot"></span> സൂര്യ/ചന്ദ്ര സ്ഥാനം (Sun/Moon Position)</div>
+                    <div class="tech-item"><span class="dot"></span> അന്തരീക്ഷ നിരീക്ഷണം (Env. Sensor)</div>
+                    <div class="tech-item"><span class="dot"></span> പോസിറ്റീവ് എനർജി (Positive Energy Scan)</div>
+                </div>
+
+                <button class="main-btn" onclick="startAnalysis()">ഫലം പരിശോധിക്കുക</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 2: ANALYSIS -->
+    <div id="page-analysis" class="hidden">
+        <div class="analysis-container">
+            <div class="spinner"></div>
+            <div class="loader-text" id="loading-text">Starting Scan...</div>
+            <div class="console-log" id="console-log">Connecting to Satellite...</div>
+        </div>
+    </div>
+
+    <!-- PAGE 3: RESULT TEXT -->
+    <div id="page-result" class="hidden">
+        <div id="res-text-1" class="result-big">ഇന്നത്തെ ദിവസം വളരെ അനുകൂലമാണ്...</div>
+        <div id="res-text-2" class="result-big" style="color:#c5a059;">കൃത്യമായി പറഞ്ഞാൽ...</div>
+        <div id="res-text-3" class="result-big">ഇത് ആഘോഷങ്ങൾക്കുള്ള സമയമാണ്!</div>
+    </div>
+
+    <!-- PAGE 4: BIRTHDAY -->
+    <div id="page-birthday" class="hidden">
+        <div id="stars-container"></div>
+        
+        <div class="wish-container">
+            <span class="golden-text" id="w-line1">Happy Birthday</span>
+            <span class="golden-text sub-text" id="w-line2">Amma</span>
+        </div>
+
+        <!-- Peeking Images -->
+        <img src="https://i.ibb.co/xSRk6Jx2/Amma-1.png" class="peeking-img img-1">
+        <img src="https://i.ibb.co/7xpbWRVj/Amma-2.png" class="peeking-img img-2">
+        <img src="https://i.ibb.co/fYx4rpFX/Amma-3.png" class="peeking-img img-3">
+        <img src="https://i.ibb.co/Nhygfsf/Amma-4.png" class="peeking-img img-4">
+    </div>
+
+    <script>
+        // --- LOGIC ---
+
+        function startAnalysis() {
+            const name = document.getElementById('userName').value;
+            const star = document.getElementById('userStar').value;
+
+            if(!name || !star) {
+                alert("ദയവായി പേരും നക്ഷത്രവും നൽകുക (Please enter Name and Star)");
+                return;
+            }
+
+            // Switch to Analysis Page
+            document.getElementById('page-input').classList.add('hidden');
+            document.getElementById('page-analysis').classList.remove('hidden');
+
+            const loadText = document.getElementById('loading-text');
+            const consoleLog = document.getElementById('console-log');
+
+            // Fake Sequence
+            setTimeout(() => { 
+                loadText.innerText = "ഗ്രഹനില നോക്കുന്നു..."; 
+                consoleLog.innerText = "Aligning Planetary Data..."; 
+            }, 1000);
+            
+            setTimeout(() => { 
+                loadText.innerText = "നിമിത്തം പരിശോധിക്കുന്നു..."; 
+                consoleLog.innerText = "Analyzing Ambient Noise (Mic)..."; 
+            }, 2500);
+
+            setTimeout(() => { 
+                loadText.innerText = "പോസിറ്റീവ് എനർജി!"; 
+                consoleLog.innerText = "Energy Level: 100% Positive"; 
+            }, 4000);
+
+            setTimeout(() => { 
+                loadText.innerText = "ഫലം തയ്യാറാണ്!"; 
+                consoleLog.innerText = "Report Generated.";
+            }, 5500);
+
+            setTimeout(showResult, 6500);
+        }
+
+        function showResult() {
+            document.getElementById('page-analysis').classList.add('hidden');
+            document.getElementById('page-result').classList.remove('hidden');
+
+            const t1 = document.getElementById('res-text-1');
+            const t2 = document.getElementById('res-text-2');
+            const t3 = document.getElementById('res-text-3');
+
+            // Sequence of text appearance
+            t1.style.animation = "fadeIn 1s forwards";
+            
+            setTimeout(() => {
+                t1.style.opacity = '0.5';
+                t2.style.animation = "fadeIn 1s forwards";
+            }, 2000);
+
+            setTimeout(() => {
+                t1.style.display = 'none';
+                t2.style.display = 'none';
+                t3.style.animation = "fadeIn 1s forwards";
+            }, 4500);
+
+            setTimeout(startBirthday, 7000);
+        }
+
+        function startBirthday() {
+            document.getElementById('page-result').classList.add('hidden');
+            const bg = document.getElementById('page-birthday');
+            bg.classList.remove('hidden');
+            bg.classList.add('fade-in');
+
+            createStars();
+
+            // Text Animations
+            document.getElementById('w-line1').style.animation = "slideUp 1.5s forwards ease-out 0.5s";
+            document.getElementById('w-line2').style.animation = "slideUp 1.5s forwards ease-out 1.5s";
+
+            // Image Reveal (Peeking up)
+            const images = document.querySelectorAll('.peeking-img');
+            images.forEach((img, idx) => {
+                setTimeout(() => {
+                    img.style.opacity = '1';
+                }, 2000 + (idx * 500));
+            });
+        }
+
+        function createStars() {
+            const container = document.getElementById('stars-container');
+            for (let i = 0; i < 150; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
+                const size = Math.random() * 3;
+                const duration = Math.random() * 3 + 2;
+                star.style.left = x + '%';
+                star.style.top = y + '%';
+                star.style.width = size + 'px';
+                star.style.height = size + 'px';
+                star.style.setProperty('--duration', duration + 's');
+                container.appendChild(star);
+            }
+        }
+    </script>
+</body>
+</html>
